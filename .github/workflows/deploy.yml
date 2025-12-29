@@ -1,0 +1,34 @@
+name: Deploy
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: mlugg/setup-zig@v2.1.0
+        with:
+          version: 0.13.0
+
+      - name: build
+        run: |
+          mkdir build
+          cp index.html build/
+          zig cc -target wasm32-wasi-musl main.c -Wall --std=c2x -o build/main.wasm
+
+      - name:
+        id: push_directory
+        uses: cpina/github-action-push-to-another-repository@07c4d7b3def0a8ebe788a8f2c843a4e1de4f6900
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
+        with:
+          source-directory: build/
+          destination-github-username: 'ov7a'
+          destination-repository-name: 'ov7a.github.io'
+          user-email: ov7a@yandex.ru
+          commit-message: autocommit from ORIGIN_COMMIT
+          target-branch: master
+          target-directory: counter-machine
